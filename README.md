@@ -109,6 +109,52 @@ The application is completely self-contained on the client-side using `localStor
 
 ## 📁 Project Structure
 
+*(No changes – section retained for reference.)*
+
+## 📦 GitHub Repository Setup
+
+1. **Create a new repository** on GitHub (public or private as you prefer).
+2. In your terminal, add the remote and push the current code:
+   ```bash
+   cd C:\Users\Dell\.gemini\antigravity\scratch\retail-inventory-system
+   git remote add origin https://github.com/<YOUR_USERNAME>/<REPO_NAME>.git
+   git branch -M main
+   git push -u origin main
+   ```
+   Replace `<YOUR_USERNAME>` and `<REPO_NAME>` with your GitHub username and the repository name you created.
+3. Verify on GitHub that all source files (except `node_modules/` and `dist/`) are present.
+
+## 🚀 Deploy to Vercel
+
+There are two common ways to deploy this SPA on Vercel:
+
+### 1️⃣ Via Vercel Dashboard (recommended for beginners)
+1. Log in to the Vercel dashboard at https://vercel.com.
+2. Click **"Add New Project"** → **"Import Git Repository"**.
+3. Select the repository you just pushed.
+4. Vercel will auto‑detect the **Vite** framework.
+5. Ensure the following settings:
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+   - **Root Directory**: leave blank (project root).
+6. Click **Deploy**. Vercel will install dependencies, run the build, and give you a public URL (e.g., `https://your-repo-name.vercel.app`).
+
+### 2️⃣ Via Vercel CLI (if you prefer command‑line)
+```bash
+npm install -g vercel   # install Vercel CLI globally (once)
+vercel                 # run inside the project folder, answer prompts
+vercel --prod          # deploy the production build
+```
+The CLI will create the same `vercel.json`‑based configuration and output a public URL.
+
+## 🔐 Secrets & Environment Variables
+- This project uses **no external APIs**, database connections, or secret keys.
+- All credentials (demo admin email/password) are hard‑coded for demonstration only and are safe to be public.
+- No `.env` files are present; the repository contains only client‑side code.
+
+---
+*The rest of the original README follows unchanged.*
+
 ```
 retail-inventory-system/
 ├── index.html                    # Root HTML entry with custom SVG favicon and Inter font
