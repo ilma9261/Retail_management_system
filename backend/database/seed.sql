@@ -7,10 +7,10 @@ USE retailflow_db;
 
 -- 1. Default Users (Pass: Admin@123 -> bcrypt hash)
 INSERT INTO users (id, email, password_hash, role, first_name, last_name) VALUES
-(1, 'admin@retailflow.com', '$2a$10$U2n2XwYq.X6.p6sMvOaEGeK3eZ9Q1aY7JkK4/d4w9n0E0e/Qz5d1C', 'admin', 'Rajesh', 'Verma'),
-(2, 'manager@retailflow.com', '$2a$10$U2n2XwYq.X6.p6sMvOaEGeK3eZ9Q1aY7JkK4/d4w9n0E0e/Qz5d1C', 'manager', 'Priya', 'Sharma'),
-(3, 'staff@retailflow.com', '$2a$10$U2n2XwYq.X6.p6sMvOaEGeK3eZ9Q1aY7JkK4/d4w9n0E0e/Qz5d1C', 'staff', 'Amit', 'Kumar')
-ON DUPLICATE KEY UPDATE email=VALUES(email);
+(1, 'admin@retailflow.com', '$2a$10$UXtT6PAiAYI7pzdeSn1A.eaY24Smd2eEbRkMm5n4.Q6KmQ3Ynbxom', 'admin', 'Rajesh', 'Verma'),
+(2, 'manager@retailflow.com', '$2a$10$UXtT6PAiAYI7pzdeSn1A.eaY24Smd2eEbRkMm5n4.Q6KmQ3Ynbxom', 'manager', 'Priya', 'Sharma'),
+(3, 'staff@retailflow.com', '$2a$10$UXtT6PAiAYI7pzdeSn1A.eaY24Smd2eEbRkMm5n4.Q6KmQ3Ynbxom', 'staff', 'Amit', 'Kumar')
+ON DUPLICATE KEY UPDATE email=VALUES(email), password_hash=VALUES(password_hash);
 
 -- 2. Categories
 INSERT INTO categories (id, name, description) VALUES

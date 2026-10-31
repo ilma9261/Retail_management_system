@@ -70,6 +70,74 @@ export const getPurchaseOrders = async (req, res) => {
   }
 };
 
+// Get single Purchase Order by ID
+export const getPurchaseOrder = async (req, res) => {
+  try {
+    const pool = db.getPool();
+    const poId = parseInt(req.params.id, 10);
+    const [orders] = await pool.query(`
+      SELECT 
+        po.id,
+        po.po_number AS poNumber,
+        po.supplier_id AS supplierId,
+        po.target_warehouse_id AS targetWarehouseId,
+        po.status,
+        po.total_amount AS totalAmount,
+        po.order_date AS orderDate,
+        po.expected_delivery AS expectedDelivery,
+        po.received_at AS receivedAt,
+        po.notes,
+        po.created_at AS createdAt,
+        s.company_name AS supplierName,
+        w.name AS targetWarehouseName
+      FROM purchase_orders po
+      LEFT JOIN suppliers s ON po.supplier_id = s.id
+      LEFT JOIN warehouses w ON po.target_warehouse_id = w.id
+      WHERE po.id = ?;
+    `, [poId]);
+
+    if (!orders || orders.length === 0) {
+      return res.status(404).json({ message: 'Purchase order not found' });
+    }
+
+    const po = orders[0];
+    const [items] = await pool.query(`
+      SELECT 
+        poi.id,
+        poi.purchase_order_id,
+        poi.product_id AS productId,
+        poi.quantity,
+        poi.unit_price AS unitPrice,
+        poi.total_price AS total,
+        p.name AS productName,
+        p.sku
+      FROM purchase_order_items poi
+      JOIN products p ON poi.product_id = p.id
+      WHERE poi.purchase_order_id = ?;
+    `, [poId]);
+
+    res.json({
+      ...po,
+      id: String(po.id),
+      _id: String(po.id),
+      supplier: { id: po.supplierId, name: po.supplierName, companyName: po.supplierName },
+      targetWarehouse: { id: po.targetWarehouseId, name: po.targetWarehouseName },
+      items: items.map(it => ({
+        id: it.id,
+        productId: it.productId,
+        productName: it.productName,
+        sku: it.sku,
+        quantity: it.quantity,
+        unitPrice: it.unitPrice,
+        total: it.total
+      }))
+    });
+  } catch (err) {
+    console.error('getPurchaseOrder error:', err);
+    res.status(500).json({ message: 'Error retrieving purchase order', error: err.message });
+  }
+};
+
 // Create new Purchase Order with multiple line items inside an ACID transaction
 export const createPurchaseOrder = async (req, res) => {
   const pool = db.getPool();

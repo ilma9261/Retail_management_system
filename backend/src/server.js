@@ -60,13 +60,15 @@ export const startServer = async () => {
     console.warn('⚠️ MySQL connection warning (retrying in background):', err.message);
   }
 
-  if (!process.env.VERCEL) {
+  if (!process.env.VERCEL && !process.env.NODE_ENV_TEST) {
     app.listen(PORT, () => {
       console.log(`🚀 RetailFlow MySQL Backend running on port ${PORT}`);
     });
   }
 };
 
-startServer();
+if (!process.env.NODE_ENV_TEST) {
+  startServer();
+}
 
 export default app;
