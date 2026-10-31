@@ -138,7 +138,7 @@ export const Login = () => {
             <div className="mt-4 flex items-start gap-2 text-[11px] text-slate-500 leading-relaxed">
               <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
               <span>
-                Demonstration local authentication session stored in browser storage. Suitable for Capstone Agile evaluation.
+                Authenticated against MongoDB Atlas. JWT token is stored securely in localStorage.
               </span>
             </div>
           </div>
