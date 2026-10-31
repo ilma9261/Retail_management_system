@@ -2,15 +2,15 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy package manifests and install dependencies
+# Copy package manifests
 COPY package*.json ./
 RUN npm ci --only=production
 
-# Copy source code
+# Copy source code and database assets
 COPY src/ ./src/
+COPY database/ ./database/
 COPY .env ./
 
-# Expose backend port
 EXPOSE 5000
 
 ENV NODE_ENV=production

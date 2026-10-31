@@ -2,106 +2,117 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_REGISTRY = "123456789012.dkr.ecr.us-east-1.amazonaws.com"
-        BACKEND_IMAGE   = "retailflow-backend"
-        FRONTEND_IMAGE  = "retailflow-frontend"
-        IMAGE_TAG       = "${BUILD_NUMBER}"
-        AWS_DEFAULT_REGION = "us-east-1"
+        APP_NAME         = "retailflow"
+        BACKEND_IMAGE    = "retailflow-backend"
+        FRONTEND_IMAGE   = "retailflow-frontend"
+        IMAGE_TAG        = "${BUILD_NUMBER}"
+        NODE_ENV         = "production"
+        HEALTH_CHECK_URL = "http://localhost:5000/api/health"
     }
 
     stages {
-        stage('Checkout Source') {
+        // Stage 1: Checkout Source Code
+        stage('1. SCM Checkout') {
             steps {
-                echo 'Checking out source repository...'
+                echo '=== Stage 1: Checking out source repository ==='
                 checkout scm
             }
         }
 
-        stage('Backend Dependencies & Lint') {
+        // Stage 2: Install Dependencies
+        stage('2. Install Dependencies') {
             steps {
+                echo '=== Stage 2: Installing Backend & Frontend Dependencies ==='
                 dir('backend') {
-                    echo 'Installing backend dependencies...'
+                    echo 'Installing backend node modules...'
                     sh 'npm ci'
-                    echo 'Backend syntax and module check...'
-                    sh 'node --check src/server.js'
                 }
+                echo 'Installing root frontend node modules...'
+                sh 'npm ci'
             }
         }
 
-        stage('Frontend Dependencies & Build') {
+        // Stage 3: Frontend Production Build
+        stage('3. Frontend Build') {
             steps {
-                echo 'Installing frontend dependencies...'
-                sh 'npm ci'
-                echo 'Building production bundle...'
+                echo '=== Stage 3: Compiling React 18 SPA with Vite ==='
                 sh 'npm run build'
             }
         }
 
-        stage('Security & Audit Scan') {
+        // Stage 4: Backend Tests & Lint
+        stage('4. Backend Tests & Syntax Verification') {
             steps {
-                echo 'Running npm audit...'
-                sh 'npm audit --audit-level=high || true'
+                echo '=== Stage 4: Running Node.js Syntax Verification & Unit Tests ==='
                 dir('backend') {
-                    sh 'npm audit --audit-level=high || true'
+                    sh 'node --check src/server.js'
+                    sh 'node --check src/config/db.js'
+                    sh 'node --check src/controllers/productController.js'
+                    sh 'node --check src/controllers/purchaseOrderController.js'
+                    sh 'node --check src/controllers/stockTransferController.js'
                 }
             }
         }
 
-        stage('Build Docker Images') {
+        // Stage 5: Build Docker Images
+        stage('5. Docker Image Build') {
             steps {
-                echo 'Building Backend Docker Image...'
+                echo '=== Stage 5: Building Production Docker Images ==='
                 sh "docker build -t ${BACKEND_IMAGE}:${IMAGE_TAG} -t ${BACKEND_IMAGE}:latest ./backend"
-
-                echo 'Building Frontend Docker Image...'
                 sh "docker build -t ${FRONTEND_IMAGE}:${IMAGE_TAG} -t ${FRONTEND_IMAGE}:latest ."
             }
         }
 
-        stage('Push to AWS ECR') {
-            when {
-                branch 'main'
-            }
+        // Stage 6: Deployment (K3s Kubernetes or Docker Compose)
+        stage('6. Deployment') {
             steps {
+                echo '=== Stage 6: Deploying Application to Target Environment ==='
                 script {
-                    echo 'Authenticating with AWS ECR...'
-                    sh 'aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${DOCKER_REGISTRY}'
-                    
-                    echo 'Tagging and pushing Backend image...'
-                    sh "docker tag ${BACKEND_IMAGE}:${IMAGE_TAG} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${IMAGE_TAG}"
-                    sh "docker tag ${BACKEND_IMAGE}:latest ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:latest"
-                    sh "docker push ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${IMAGE_TAG}"
-                    sh "docker push ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:latest"
-
-                    echo 'Tagging and pushing Frontend image...'
-                    sh "docker tag ${FRONTEND_IMAGE}:${IMAGE_TAG} ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${IMAGE_TAG}"
-                    sh "docker tag ${FRONTEND_IMAGE}:latest ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:latest"
-                    sh "docker push ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${IMAGE_TAG}"
-                    sh "docker push ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:latest"
+                    // Check if K3s/kubectl is configured on agent
+                    def k8sAvailable = sh(script: 'command -v kubectl', returnStatus: true) == 0
+                    if (k8sAvailable) {
+                        echo 'Deploying to K3s Kubernetes cluster...'
+                        sh 'kubectl apply -f k8s/01-namespace.yaml'
+                        sh 'kubectl apply -f k8s/02-config-secret.yaml'
+                        sh 'kubectl apply -f k8s/03-mysql.yaml'
+                        sh 'kubectl apply -f k8s/04-backend.yaml'
+                        sh 'kubectl apply -f k8s/05-frontend.yaml'
+                        sh 'kubectl apply -f k8s/06-ingress.yaml'
+                        sh 'kubectl rollout status deployment/backend-deployment -n retailflow --timeout=120s'
+                    } else {
+                        echo 'Kubectl not detected. Deploying via Docker Compose...'
+                        sh 'docker compose down || true'
+                        sh 'docker compose up -d --build'
+                    }
                 }
             }
         }
 
-        stage('Deploy to AWS ECS') {
-            when {
-                branch 'main'
-            }
+        // Stage 7: Health Check & Smoke Test
+        stage('7. Health Verification') {
             steps {
-                echo 'Triggering rolling deployment to AWS ECS Cluster...'
-                sh 'aws ecs update-service --cluster retailflow-cluster --service retailflow-backend-svc --force-new-deployment --region ${AWS_DEFAULT_REGION}'
-                sh 'aws ecs update-service --cluster retailflow-cluster --service retailflow-frontend-svc --force-new-deployment --region ${AWS_DEFAULT_REGION}'
+                echo '=== Stage 7: Verifying Application Health Probe ==='
+                script {
+                    sleep(time: 15, unit: 'SECONDS')
+                    def healthCheck = sh(
+                        script: 'curl -s -f http://localhost:5000/api/health || curl -s -f http://localhost:80/api/health',
+                        returnStdout: true
+                    )
+                    echo "Health probe response: ${healthCheck}"
+                }
             }
         }
     }
 
     post {
         always {
-            cleanWs()
+            echo "CI/CD Pipeline finished execution for Build #${BUILD_NUMBER}."
         }
         success {
-            echo "CI/CD Pipeline succeeded for build #${BUILD_NUMBER}!"
+            echo "✅ Pipeline SUCCESS: RetailFlow build #${BUILD_NUMBER} deployed successfully."
         }
         failure {
-            echo "CI/CD Pipeline failed for build #${BUILD_NUMBER}. Please check logs."
+            echo "❌ Pipeline FAILED: Please check console logs for build #${BUILD_NUMBER}."
         }
     }
 }

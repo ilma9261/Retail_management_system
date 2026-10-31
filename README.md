@@ -1,26 +1,18 @@
-# RetailFlow — Enterprise Retail Inventory Management System
+# RetailFlow — Retail Inventory Management System
+### Academic Capstone Project P_022 (Agile Capstone Case Study)
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel%20Production-success.svg?logo=vercel)](https://retail-inventory-system-ten.vercel.app)
-[![Node.js](https://img.shields.io/badge/Backend-Node.js%2020%20%7C%20Express-339933.svg?logo=node.js)](https://nodejs.org)
-[![MongoDB Atlas](https://img.shields.io/badge/Database-MongoDB%20Atlas%20%7C%20Mongoose-47A248.svg?logo=mongodb)](https://www.mongodb.com/atlas)
-[![React](https://img.shields.io/badge/Frontend-React%2018%20%7C%20Vite%206-61DAFB.svg?logo=react)](https://react.dev)
+[![Technology](https://img.shields.io/badge/Stack-React%20%7C%20Node.js%20%7C%20MySQL-blue.svg)](https://react.dev)
+[![Database](https://img.shields.io/badge/Database-MySQL%208.0%20%7C%20mysql2-orange.svg?logo=mysql)](https://www.mysql.com)
+[![DevOps](https://img.shields.io/badge/DevOps-Docker%20%7C%20K3s%20Kubernetes-326CE5.svg?logo=kubernetes)](https://k3s.io)
+[![CI/CD](https://img.shields.io/badge/CI%2FCD-Jenkins%20Pipeline-D24939.svg?logo=jenkins)](https://www.jenkins.io)
+[![Agile](https://img.shields.io/badge/Agile-8%20Epics%20%7C%2015%20Sprints-green.svg)](JIRA_AGILE_BACKLOG.md)
+[![Cloud](https://img.shields.io/badge/Cloud-AWS%20Free%20Tier%20(₹0)-FF9900.svg?logo=amazon-aws)](CAPSTONE_SPECIFICATION_P022.md)
 
-**Live Production URL**: [https://retail-inventory-system-ten.vercel.app](https://retail-inventory-system-ten.vercel.app)
-
-**Demo Credentials**:
-- **Email**: `admin@retailflow.com`
-- **Password**: `Admin@123`
-- *(Or click the one-click "Auto-Fill Credentials" button on the login screen)*
-[![Tailwind CSS](https://img.shields.io/badge/Styles-Tailwind%203.4-38B2AC.svg?logo=tailwindcss)](https://tailwindcss.com)
-[![Docker](https://img.shields.io/badge/Containers-Docker%20%7C%20Compose-2496ED.svg?logo=docker)](https://www.docker.com)
-[![Jenkins](https://img.shields.io/badge/CI%2FCD-Jenkins%20Pipeline-D24939.svg?logo=jenkins)](https://www.jenkins.io)
-[![AWS](https://img.shields.io/badge/Cloud-AWS%20ECS%20Fargate-FF9900.svg?logo=amazon-aws)](https://aws.amazon.com)
-
-**RetailFlow** is a complete, enterprise-grade, full-stack Retail Inventory Management System designed to streamline product catalog management, multi-warehouse logistics, purchase order procurement lifecycles, and real-time operational analytics for modern retail enterprises.
+**RetailFlow** is a production-ready, full-stack Retail Inventory Management System built to fulfill the college capstone specification **P_022**. It features a modern React 18 single-page application, an Express.js REST API using `mysql2`, a normalized 10-table MySQL 8.0 relational schema with ACID database transactions, Docker containerization, lightweight K3s Kubernetes manifests, an automated Jenkins CI/CD pipeline, and a Jira Agile backlog structured into **exactly 8 Epics and 15 Sprints**.
 
 ---
 
-## 🏗️ Architecture & Technology Stack
+## 🏛️ System Architecture
 
 ```
    ┌────────────────────────────────────────────────────────┐
@@ -31,136 +23,122 @@
                                ▼
    ┌────────────────────────────────────────────────────────┐
    │             Backend REST API Server (Node / Express)   │
-   │  Controllers, Routers, Mongoose ORM, bcrypt, JWT Auth  │
+   │      mysql2 Pool, Controllers, JWT Auth, Transactions   │
    └───────────────────────────┬────────────────────────────┘
-                               │ TLS 1.3 / Port 27017
+                               │ TCP / Port 3306 (ACID)
                                ▼
    ┌────────────────────────────────────────────────────────┐
-   │             MongoDB Atlas Cloud Database               │
-   │  Collections: Users, Products, Warehouses, Suppliers,  │
-   │      PurchaseOrders, StockTransfers, Transactions      │
+   │             MySQL 8.0 Relational Database              │
+   │  10 Relational Tables: users, products, categories,    │
+   │  warehouses, inventory, suppliers, purchase_orders,    │
+   │  po_items, stock_transfers, stock_transfer_items, txns │
    └────────────────────────────────────────────────────────┘
 ```
 
-- **Frontend**: React 18, React Router v6, Tailwind CSS, Lucide React Icons, Recharts data visualization.
-- **Backend**: Node.js 20, Express 4, Mongoose 8 (MongoDB Atlas ODM), JSON Web Tokens (JWT), bcryptjs password hashing.
-- **Database**: MongoDB Atlas Cloud Cluster.
-- **DevOps**: Docker, Docker Compose, Jenkins CI/CD Pipeline, AWS ECS Fargate, Amazon ECR, Application Load Balancer.
+---
+
+## 📋 Technology Specification Compliance
+
+| Requirement | Required by College | Implemented Solution |
+| :--- | :--- | :--- |
+| **Frontend** | React / Angular / Vue | **React.js 18 + Vite 6 + Tailwind CSS** |
+| **Backend** | Node.js or Java Spring Boot | **Node.js 20 LTS + Express.js 4** |
+| **Database** | MySQL or PostgreSQL | **MySQL 8.0** using `mysql2/promise` with ACID transactions |
+| **DevOps** | Docker / Kubernetes | **Docker Compose** & **K3s Kubernetes** manifests |
+| **CI/CD** | Jenkins | **Jenkinsfile** (7-stage automated declarative pipeline) |
+| **Project Mgmt** | Jira | **Jira CSV Backlog** with **Exactly 8 Epics & 15 Sprints** |
+| **Cloud** | AWS or Azure | **AWS EC2 Free Tier** (`t2.micro`/`t3.micro`) with **Strict ₹0 Budget** |
 
 ---
 
-## ⚡ Quick Start (Local Development)
+## ⚡ Quick Start: Local Execution with Docker Compose
 
-### Prerequisites
-- Node.js >= 18.x
-- npm >= 9.x
-- Active MongoDB Atlas Cluster (connection URI configured)
-
-### 1. Backend Setup & Seed
+Run the entire application (MySQL 8.0 + Node Backend + React Frontend) with one command:
 
 ```bash
-cd backend
-npm install
+# 1. Clone the repository
+git clone https://github.com/ilma9261/Retail_management_system.git
+cd Retail_management_system
 
-# Verify your backend/.env has the following:
-# MONGODB_URI=mongodb+srv://<user>:<password>@cluster0.../retailflow
-# JWT_SECRET=<secure_random_hex>
-# PORT=5000
+# 2. Start the full-stack container environment
+docker compose up --build -d
 
-# Seed the database with initial demo data (users, products, warehouses, suppliers):
-npm run seed
-
-# Start the backend server:
-npm run dev
-# Server will run on http://localhost:5000
+# 3. Check running containers
+docker compose ps
 ```
 
-### 2. Frontend Setup
+- **Frontend Application**: `http://localhost:80`
+- **Backend API Health Probe**: `http://localhost:5000/api/health`
+- **MySQL Database**: `localhost:3306` (User: `root`, Password: `rootpassword`, Database: `retailflow_db`)
 
-In another terminal window:
-
-```bash
-# In the project root:
-npm install
-
-# Start Vite dev server:
-npm run dev
-# Frontend will run on http://localhost:5173
-```
-
-### 3. Demo Login Credentials
-
-The database is seeded with ready-to-use accounts:
+### Default Demo Credentials
 - **Email**: `admin@retailflow.com`
 - **Password**: `Admin@123`
-- **Role**: Admin
-
-*(A convenient "Auto-Fill Credentials" button is available directly on the login screen for instant access.)*
+- *(Or click the one-click **"Auto-Fill Credentials"** button directly on the login screen.)*
 
 ---
 
-## 🐳 Docker Setup
+## ☸️ Lightweight K3s Kubernetes Deployment
 
-To run both frontend and backend in isolated production containers using Docker Compose:
+Deploy the application to any K3s or Kubernetes cluster:
 
 ```bash
-# Build and start all services:
-docker-compose up --build -d
+# 1. Create dedicated namespace
+kubectl apply -f k8s/01-namespace.yaml
 
-# Check service health:
-docker-compose ps
+# 2. Create ConfigMap and Secrets
+kubectl apply -f k8s/02-config-secret.yaml
 
-# Access the application:
-# Frontend: http://localhost:80
-# Backend API: http://localhost:5000/api/health
+# 3. Deploy MySQL 8.0 with Persistent Volume Claim
+kubectl apply -f k8s/03-mysql.yaml
+
+# 4. Deploy Backend REST API (with health & readiness probes)
+kubectl apply -f k8s/04-backend.yaml
+
+# 5. Deploy Frontend Nginx Application
+kubectl apply -f k8s/05-frontend.yaml
+
+# 6. Apply Ingress (Traefik)
+kubectl apply -f k8s/06-ingress.yaml
+
+# 7. Check pod status
+kubectl get pods -n retailflow
 ```
 
 ---
 
-## 📡 REST API Reference
+## 🔄 Jenkins CI/CD Pipeline
 
-| Endpoint | Method | Auth Required | Description |
-| :--- | :--- | :--- | :--- |
-| `/api/health` | GET | No | Backend health check probe |
-| `/api/auth/register` | POST | No | Register new user account |
-| `/api/auth/login` | POST | No | Authenticate user & return JWT token |
-| `/api/dashboard` | GET | Yes | Aggregated KPI stats, charts, & metrics |
-| `/api/products` | GET / POST | Yes | List all products / Create new product |
-| `/api/products/:id` | GET / PUT / DELETE | Yes | Product details / Update / Delete |
-| `/api/warehouses` | GET / POST | Yes | List / Register warehouse facilities |
-| `/api/warehouses/:id` | GET / PUT / DELETE | Yes | Warehouse details / Update / Delete |
-| `/api/suppliers` | GET / POST | Yes | List / Register vendor suppliers |
-| `/api/suppliers/:id` | GET / PUT / DELETE | Yes | Supplier details / Update / Delete |
-| `/api/purchase-orders` | GET / POST | Yes | List / Create procurement purchase orders |
-| `/api/purchase-orders/:id/status` | PATCH | Yes | Transition PO status (Approved, Received) |
-| `/api/stock-transfers` | GET / POST | Yes | Transfer stock between warehouses atomically |
-| `/api/inventory` | GET | Yes | Inventory catalog overview |
-| `/api/inventory/transactions` | GET | Yes | Complete audit ledger of all stock movements |
-| `/api/inventory/adjust` | POST | Yes | Manual stock adjustments (in, out, count) |
+The included [`Jenkinsfile`](Jenkinsfile) runs automated builds for free self-hosted Jenkins instances:
+1. **SCM Checkout**: Clones latest Git commit.
+2. **Install Dependencies**: Runs `npm ci` for backend and frontend.
+3. **Frontend Build**: Compiles production React distribution via Vite.
+4. **Backend Tests**: Syntax verification and route checks.
+5. **Docker Build**: Builds and tags `retailflow-backend` and `retailflow-frontend` images.
+6. **Deployment**: Deploys to K3s cluster via `kubectl apply` or Docker Compose.
+7. **Health Verification**: Curls `/api/health` with automated status verification.
 
 ---
 
-## 🔒 Security & Environment Configuration
+## ☁️ AWS Free Tier Deployment (Strictly ₹0.00)
 
-### Backend `.env` (`backend/.env`)
-```ini
-MONGODB_URI=mongodb+srv://<db_username>:<db_password>@cluster0.g9etklb.mongodb.net/retailflow?retryWrites=true&w=majority
-JWT_SECRET=b1c06b140e1770e98e5d5ca03b3538cc50a9a73e9efc43558cc2ad6dfa315b1640e15da679e6282631f32b8c4ed7e81ebe4bfb74aa74d23b4b53fae1cc949279
-PORT=5000
-CLIENT_ORIGIN=http://localhost:5173
-```
-
-### Frontend `.env` (`.env`)
-```ini
-VITE_API_URL=http://localhost:5000/api
-```
-
-> **Security Note**: Both root and backend `.gitignore` strictly ignore `.env` files. Secrets are never checked into version control.
+See [`CAPSTONE_SPECIFICATION_P022.md`](CAPSTONE_SPECIFICATION_P022.md) for the exact step-by-step AWS deployment procedure:
+- Uses **1 single `t2.micro` or `t3.micro` EC2 instance** (750 free hours/month).
+- Uses **20 GB gp3 EBS root volume** (within 30 GB free allowance).
+- Configures a **2 GB Swap file** on the EBS volume to support K3s, MySQL, Node, and Nginx on 1 GB physical RAM without memory crashes.
+- **Zero paid services**: No paid Amazon EKS ($73/mo), no paid RDS, no paid Load Balancers ($18/mo), and no NAT Gateways.
+- **Total Monthly Cost: ₹0.00**.
 
 ---
 
-## ☁️ Cloud & DevOps Deliverables
+## 📊 Agile Scrum Backlog (Exactly 8 Epics & 15 Sprints)
 
-- **AWS Production Deployment**: See [AWS_DEPLOYMENT.md](file:///C:/Users/Dell/.gemini/antigravity/scratch/retail-inventory-system/AWS_DEPLOYMENT.md) for AWS ECS Fargate, ECR, ALB, and Secrets Manager architecture.
-- **CI/CD Pipeline**: See [Jenkinsfile](file:///C:/Users/Dell/.gemini/antigravity/scratch/retail-inventory-system/Jenkinsfile) for automated test, build, containerization, and AWS deployment.
-- **Agile Scrum Backlog**: See [JIRA_AGILE_BACKLOG.md](file:///C:/Users/Dell/.gemini/antigravity/scratch/retail-inventory-system/JIRA_AGILE_BACKLOG.md) for 5 Epics, 11 User Stories, Acceptance Criteria, and Story Point estimations.
+The complete Scrum backlog is detailed in [`JIRA_AGILE_BACKLOG.md`](JIRA_AGILE_BACKLOG.md) and importable into Jira via [`jira-backlog-p022.csv`](jira-backlog-p022.csv):
+- **RET-EPIC-1**: Project Initiation, Architecture & Environment Setup (Sprints 1, 2)
+- **RET-EPIC-2**: User Authentication, Authorization & RBAC (Sprint 3)
+- **RET-EPIC-3**: Master Data Management (Categories, Warehouses, Suppliers) (Sprints 4, 5)
+- **RET-EPIC-4**: Product Catalog & Multi-Facility Inventory Tracking (Sprints 6, 7)
+- **RET-EPIC-5**: Inter-Warehouse Stock Transfers & Reconciliation (Sprints 8, 9)
+- **RET-EPIC-6**: Procurement Lifecycle & Automated Purchase Order Receiving (Sprints 10, 11)
+- **RET-EPIC-7**: Operational Analytics, Executive Dashboard & CSV Reporting (Sprints 12, 13)
+- **RET-EPIC-8**: DevOps Containerization, K3s Kubernetes, Jenkins & AWS (Sprints 14, 15)

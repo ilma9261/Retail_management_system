@@ -1,60 +1,95 @@
-import Product from '../models/Product.js';
-import Warehouse from '../models/Warehouse.js';
-import Supplier from '../models/Supplier.js';
-import PurchaseOrder from '../models/PurchaseOrder.js';
-import InventoryTransaction from '../models/InventoryTransaction.js';
+import db from '../config/db.js';
 
 export const getDashboardStats = async (req, res) => {
   try {
-    const [products, warehouses, suppliers, purchaseOrders, recentTxns] = await Promise.all([
-      Product.find(),
-      Warehouse.find(),
-      Supplier.find(),
-      PurchaseOrder.find(),
-      InventoryTransaction.find().sort({ createdAt: -1 }).limit(100).populate('product','name sku').populate('warehouse','name'),
-    ]);
+    const pool = db.getPool();
 
-    const totalProducts = products.length;
-    const totalStockUnits = products.reduce((a, p) => a + (p.stock || 0), 0);
-    const totalStockValue = products.reduce((a, p) => a + (p.stock || 0) * (p.purchasePrice || 0), 0);
-    const lowStockProducts = products.filter(p => p.stock > 0 && p.stock <= p.minStock);
-    const outOfStockProducts = products.filter(p => p.stock <= 0);
-    const pendingPOs = purchaseOrders.filter(po => ['Pending','Approved','Draft'].includes(po.status)).length;
+    // 1. Overall counts and valuation
+    const [summaryRows] = await pool.query(`
+      SELECT 
+        COUNT(p.id) AS totalProducts,
+        COALESCE(SUM(p.stock), 0) AS totalStockUnits,
+        COALESCE(SUM(p.stock * p.purchase_price), 0) AS totalStockValue,
+        SUM(CASE WHEN p.stock > 0 AND p.stock <= p.min_stock_level THEN 1 ELSE 0 END) AS lowStockCount,
+        SUM(CASE WHEN p.stock <= 0 THEN 1 ELSE 0 END) AS outOfStockCount
+      FROM products p;
+    `);
 
-    // Category breakdown
-    const catMap = {};
-    products.forEach(p => {
-      const cat = p.category || 'Other';
-      if (!catMap[cat]) catMap[cat] = { category: cat, count: 0, units: 0, value: 0 };
-      catMap[cat].count++;
-      catMap[cat].units += p.stock || 0;
-      catMap[cat].value += (p.stock || 0) * (p.purchasePrice || 0);
-    });
+    const [whCount] = await pool.query('SELECT COUNT(id) AS totalWarehouses FROM warehouses;');
+    const [supCount] = await pool.query('SELECT COUNT(id) AS totalSuppliers FROM suppliers;');
+    const [poCount] = await pool.query("SELECT COUNT(id) AS pendingPOs FROM purchase_orders WHERE status IN ('Draft', 'Pending', 'Approved');");
 
-    // Monthly movement
-    const movMap = {};
-    recentTxns.forEach(t => {
-      const month = new Date(t.createdAt).toLocaleString('en-US', { month: 'short' });
-      if (!movMap[month]) movMap[month] = { month, stockIn: 0, stockOut: 0 };
-      if (t.type === 'STOCK_IN' || t.type === 'TRANSFER_IN') movMap[month].stockIn += Math.abs(t.quantity);
-      else if (t.type === 'STOCK_OUT' || t.type === 'TRANSFER_OUT') movMap[month].stockOut += Math.abs(t.quantity);
-    });
+    // 2. Category distribution
+    const [categoryRows] = await pool.query(`
+      SELECT 
+        COALESCE(c.name, 'Other') AS category,
+        COUNT(p.id) AS count,
+        COALESCE(SUM(p.stock), 0) AS units,
+        COALESCE(SUM(p.stock * p.purchase_price), 0) AS value
+      FROM products p
+      LEFT JOIN categories c ON p.category_id = c.id
+      GROUP BY c.name
+      ORDER BY units DESC;
+    `);
+
+    // 3. Warehouse storage capacity breakdown
+    const [warehouseRows] = await pool.query(`
+      SELECT 
+        w.id,
+        w.name,
+        w.storage_capacity AS capacity,
+        COALESCE(SUM(i.quantity), 0) AS currentStockUnits,
+        COALESCE(SUM(i.quantity * p.purchase_price), 0) AS totalValue
+      FROM warehouses w
+      LEFT JOIN inventory i ON w.id = i.warehouse_id
+      LEFT JOIN products p ON i.product_id = p.id
+      GROUP BY w.id
+      ORDER BY w.id ASC;
+    `);
+
+    const warehouseBreakdown = warehouseRows.map(w => ({
+      ...w,
+      occupancyRate: w.capacity ? Math.min(100, Math.round((w.currentStockUnits / w.capacity) * 100)) : 0
+    }));
+
+    // 4. Monthly movement from inventory transactions
+    const [movementRows] = await pool.query(`
+      SELECT 
+        DATE_FORMAT(created_at, '%b') AS month,
+        SUM(CASE WHEN type IN ('STOCK_IN', 'TRANSFER_IN') THEN quantity ELSE 0 END) AS stockIn,
+        SUM(CASE WHEN type IN ('STOCK_OUT', 'TRANSFER_OUT') THEN quantity ELSE 0 END) AS stockOut
+      FROM inventory_transactions
+      GROUP BY DATE_FORMAT(created_at, '%b'), MONTH(created_at)
+      ORDER BY MONTH(created_at) ASC;
+    `);
+
+    // 5. Low stock alerts
+    const [lowStockProducts] = await pool.query(`
+      SELECT id, sku, name, stock, min_stock_level AS minStockLevel
+      FROM products
+      WHERE stock <= min_stock_level
+      ORDER BY stock ASC
+      LIMIT 10;
+    `);
+
+    const summary = summaryRows[0] || {};
 
     res.json({
-      totalProducts,
-      totalStockUnits,
-      totalStockValue,
-      lowStockCount: lowStockProducts.length,
-      outOfStockCount: outOfStockProducts.length,
-      totalWarehouses: warehouses.length,
-      totalSuppliers: suppliers.length,
-      pendingPurchaseOrders: pendingPOs,
-      lowStockProducts,
-      outOfStockProducts,
-      categoryBreakdown: Object.values(catMap),
-      monthlyMovement: Object.values(movMap),
-      recentTransactions: recentTxns.slice(0, 10),
-      warehouseBreakdown: warehouses.map(w => ({ ...w.toObject(), occupancyRate: w.capacity ? Math.min(100, Math.round((w.currentStockUnits / w.capacity) * 100)) : 0 }))
+      totalProducts: Number(summary.totalProducts) || 0,
+      totalStockUnits: Number(summary.totalStockUnits) || 0,
+      totalStockValue: Number(summary.totalStockValue) || 0,
+      lowStockCount: Number(summary.lowStockCount) || 0,
+      outOfStockCount: Number(summary.outOfStockCount) || 0,
+      totalWarehouses: Number(whCount[0]?.totalWarehouses) || 0,
+      totalSuppliers: Number(supCount[0]?.totalSuppliers) || 0,
+      pendingPurchaseOrders: Number(poCount[0]?.pendingPOs) || 0,
+      categoryBreakdown: categoryRows.map(c => ({ ...c, units: Number(c.units), value: Number(c.value) })),
+      warehouseBreakdown,
+      monthlyMovement: movementRows.map(m => ({ month: m.month, stockIn: Number(m.stockIn), stockOut: Number(m.stockOut) })),
+      lowStockProducts
     });
-  } catch (err) { res.status(500).json({ message: err.message }); }
+  } catch (err) {
+    console.error('getDashboardStats error:', err);
+    res.status(500).json({ message: 'Error computing dashboard statistics', error: err.message });
+  }
 };

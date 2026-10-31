@@ -1,0 +1,39 @@
+Issue Type,Summary,Description,Epic Name,Epic Link,Priority,Story Points,Sprint
+Epic,Project Initiation Architecture & Environment Setup,"High-level system design, relational MySQL schema drafting, and environment baseline.",Project Initiation,,High,,
+Epic,Authentication Authorization & RBAC,"User registration, bcrypt password hashing, signed JWT issuance, and role-based permissions.",Authentication,,High,,
+Epic,Master Data Management,"Administrative directories for categories, geographic storage hubs, and verified vendor contacts.",Master Data,,Medium,,
+Epic,Product Catalog & Inventory Tracking,"SKU lifecycle management, pricing, low-stock threshold triggers, and real-time inventory breakdown.",Product Catalog,,High,,
+Epic,Inter-Warehouse Stock Transfers,"Dispatching units between facilities, row-level locking, negative inventory guards, and atomic ledger.",Stock Transfers,,High,,
+Epic,Procurement Lifecycle & Purchase Orders,"Vendor purchase orders, multi-line pricing calculations, status transitions, and atomic stock increment.",Procurement,,High,,
+Epic,Operational Analytics & Dashboard,"Real-time KPI metric cards, Recharts visual trends, and client-side CSV data exports.",Analytics,,Medium,,
+Epic,DevOps Containerization K3s & Jenkins,"Docker multi-container compose, lightweight K3s orchestration, Jenkins pipeline, and AWS deployment.",DevOps,,High,,
+Story,Relational Database Modeling & MySQL Schema,"Model entity-relationship schema and write database/schema.sql with 10 tables.",,Project Initiation,High,5,Sprint 1
+Story,Node.js Express Repository & Connection Pool,"Initialize Express with mysql2 connection pool and health probes.",,Project Initiation,High,5,Sprint 1
+Story,Frontend Atomic UI Component Library,"Build reusable primitives (Badge, Button, Card, Modal, Table, Input) with Tailwind CSS.",,Project Initiation,Medium,5,Sprint 2
+Story,App Shell & Navigation Routing,"Implement AppLayout, Sidebar, Header, and React Router v6 route skeleton.",,Project Initiation,Medium,5,Sprint 2
+Story,JWT Authentication API & Password Hashing,"Build POST /api/auth/register and /api/auth/login with bcrypt and JWT middleware.",,Authentication,High,6,Sprint 3
+Story,One-Click Demo Credentials UI,"Connect Login.jsx with Auto-Fill demo credentials button.",,Authentication,Medium,4,Sprint 3
+Story,Supplier Directory API & Business Rules,"Implement supplier CRUD and prevent deleting suppliers with pending POs.",,Master Data,High,5,Sprint 4
+Story,Category Management & Catalog Filters,"Build category tables and bind category filter dynamically in frontend.",,Master Data,Medium,5,Sprint 4
+Story,Multi-Warehouse Facility Management,"Implement warehouse CRUD with capacity limits and dynamic occupancy percentage.",,Master Data,High,6,Sprint 5
+Story,Warehouse Capacity Visualization,"Render live capacity utilization progress bars with color-coded warning badges.",,Master Data,Medium,4,Sprint 5
+Story,Product Catalog CRUD & Unique SKU Engine,"Build product CRUD API with duplicate SKU prevention.",,Product Catalog,High,6,Sprint 6
+Story,Interactive Catalog Search & Margin Inspector,"Connect Products table with instant search and markup margin calculation modal.",,Product Catalog,Medium,4,Sprint 6
+Story,Multi-Facility Inventory Breakdown Matrix,"Create inventory table mapping product-warehouse stock levels.",,Product Catalog,High,5,Sprint 7
+Story,Manual Stock Adjustment & Audit Ledger,"Implement POST /api/inventory/adjust with ACID transaction and non-negative constraints.",,Product Catalog,High,5,Sprint 7
+Story,Inter-Warehouse Transfer Creation API,"Build POST /api/stock-transfers with source stock verification.",,Stock Transfers,High,5,Sprint 8
+Story,Transfer Dispatch Modal Interface,"Connect Transfers page form preventing identical source and destination facility.",,Stock Transfers,Medium,5,Sprint 8
+Story,Atomic Transfer Transaction Reconciliation,"Wrap source deduction and destination addition in MySQL transaction with paired audit logs.",,Stock Transfers,High,6,Sprint 9
+Story,Historical Stock Movement Audit Trail,"Render transfer ledger on Transfers page with completed status tracking.",,Stock Transfers,Medium,4,Sprint 9
+Story,Multi-Item Purchase Order API,"Implement POST /api/purchase-orders calculating line item and grand totals.",,Procurement,High,5,Sprint 10
+Story,Dynamic Purchase Order Builder UI,"Create interactive PO modal allowing dynamic adding and removing of item rows.",,Procurement,Medium,5,Sprint 10
+Story,Automated PO Receiving & Stock Increment,"Build PATCH /api/purchase-orders/:id/status receiving logic updating stock atomically.",,Procurement,High,6,Sprint 11
+Story,Purchase Order Lifecycle Status UI,"Add status transition buttons (Receive, Cancel) with status badges.",,Procurement,Medium,4,Sprint 11
+Story,Executive Dashboard KPI Aggregation Endpoint,"Implement GET /api/dashboard computing valuation, stock units, and low-stock alerts.",,Analytics,High,5,Sprint 12
+Story,Recharts Interactive Data Visualizations,"Render Category Donut, Monthly Movement, and Capacity charts.",,Analytics,Medium,5,Sprint 12
+Story,Client-Side CSV Export Engine,"Build exportService.js generating RFC 4180 compliant CSV downloads.",,Analytics,Medium,5,Sprint 13
+Story,Dedicated Reports & Valuation View,"Connect Reports page to live data with valuation summary cards.",,Analytics,Low,5,Sprint 13
+Story,Docker Multi-Container Orchestration,"Create docker-compose.yml with MySQL 8.0, Backend, and Frontend containers.",,DevOps,High,5,Sprint 14
+Story,Lightweight K3s Kubernetes Manifests,"Create k8s manifests (Deployments, Services, ConfigMaps, Secrets, PVC, Ingress).",,DevOps,High,5,Sprint 14
+Story,Automated Jenkins CI/CD Declarative Pipeline,"Write 7-stage Jenkinsfile for checkout, test, build, deploy, and health probe.",,DevOps,High,5,Sprint 15
+Story,Zero-Cost AWS EC2 Free Tier Runbook,"Document t2.micro single-instance deployment with 2 GB Swap file and K3s installation.",,DevOps,High,5,Sprint 15
