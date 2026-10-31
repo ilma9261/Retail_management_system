@@ -6,6 +6,7 @@ import { InventoryProvider } from './context/InventoryContext';
 
 import { AppLayout } from './components/layout/AppLayout';
 import { Login } from './pages/Login';
+import { Register } from './pages/Register';
 import { Dashboard } from './pages/Dashboard';
 import { Products } from './pages/Products';
 import { Inventory } from './pages/Inventory';
@@ -47,6 +48,16 @@ export const App = () => {
                 element={
                   <PublicRoute>
                     <Login />
+                  </PublicRoute>
+                }
+              />
+
+              {/* Public Register Route */}
+              <Route
+                path="/register"
+                element={
+                  <PublicRoute>
+                    <Register />
                   </PublicRoute>
                 }
               />

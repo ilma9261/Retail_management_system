@@ -29,12 +29,32 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     try {
       const data = await authApi.login(email.trim().toLowerCase(), password);
-      // data = { token, user: { id, email, role } }
+      // data = { token, user: { id, email, role, name } }
       tokenStorage.set(data.token);
       const authUser = {
         id: data.user.id,
         email: data.user.email,
-        name: data.user.email.split('@')[0],
+        name: data.user.name || data.user.email.split('@')[0],
+        role: data.user.role,
+        loggedInAt: new Date().toISOString(),
+      };
+      localStorage.setItem(SESSION_KEY, JSON.stringify(authUser));
+      setUser(authUser);
+      return authUser;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const register = async (email, password, role = 'staff', firstName = '', lastName = '') => {
+    setLoading(true);
+    try {
+      const data = await authApi.register(email.trim().toLowerCase(), password, role, firstName, lastName);
+      tokenStorage.set(data.token);
+      const authUser = {
+        id: data.user.id,
+        email: data.user.email,
+        name: data.user.name || `${firstName} ${lastName}`.trim() || data.user.email.split('@')[0],
         role: data.user.role,
         loggedInAt: new Date().toISOString(),
       };
@@ -60,7 +80,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, logout, updateProfile, loading }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, register, logout, updateProfile, loading }}>
       {children}
     </AuthContext.Provider>
   );

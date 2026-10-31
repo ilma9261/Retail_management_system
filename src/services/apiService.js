@@ -52,7 +52,8 @@ const del = (path) => request(path, { method: 'DELETE' });
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 export const authApi = {
   login: (email, password) => post('/auth/login', { email, password }),
-  register: (email, password, role) => post('/auth/register', { email, password, role }),
+  register: (email, password, role = 'staff', firstName = '', lastName = '') =>
+    post('/auth/register', { email, password, role, firstName, lastName }),
 };
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth, DEMO_CREDENTIALS } from '../context/AuthContext';
-import { Layers, Lock, Mail, Eye, EyeOff, ShieldCheck, ArrowRight, Sparkles } from 'lucide-react';
+import { Layers, Lock, Mail, Eye, EyeOff, ShieldCheck, ArrowRight, Sparkles, UserPlus } from 'lucide-react';
 import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
 
@@ -108,24 +108,34 @@ export const Login = () => {
             </div>
           </form>
 
+          {/* Registration Link */}
+          <div className="mt-4 text-center">
+            <p className="text-xs text-slate-500">
+              Don't have an account yet?{' '}
+              <Link to="/register" className="font-semibold text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center gap-1">
+                <UserPlus className="w-3.5 h-3.5" /> Register here
+              </Link>
+            </p>
+          </div>
+
           {/* Quick Demo Credentials Box */}
           <div className="mt-6 pt-5 border-t border-slate-100">
             <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-blue-600" /> Demo Admin Account
+                  <Sparkles className="w-3.5 h-3.5 text-blue-600" /> Preserved Demo Accounts
                 </span>
                 <button
                   type="button"
                   onClick={handleFillDemo}
                   className="text-[11px] font-semibold text-blue-600 hover:text-blue-800 hover:underline bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200/60"
                 >
-                  Auto-Fill Credentials
+                  Auto-Fill Admin
                 </button>
               </div>
               <div className="text-xs space-y-1 font-mono text-slate-600 bg-white p-2.5 rounded-xl border border-slate-200/60">
                 <p>
-                  <span className="text-slate-400 select-none">Email: </span>
+                  <span className="text-slate-400 select-none">Admin: </span>
                   <span className="text-slate-900 font-semibold">{DEMO_CREDENTIALS.email}</span>
                 </p>
                 <p>
@@ -138,7 +148,7 @@ export const Login = () => {
             <div className="mt-4 flex items-start gap-2 text-[11px] text-slate-500 leading-relaxed">
               <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
               <span>
-                Authenticated against MongoDB Atlas. JWT token is stored securely in localStorage.
+                Connected to MySQL database with bcrypt salted password hashing and JWT sessions.
               </span>
             </div>
           </div>
