@@ -1,27 +1,37 @@
 import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
-import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 dotenv.config();
+try {
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+} catch (e) {}
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const mysqlUri = process.env.MYSQL_URI || process.env.MYSQL_URL;
 
-// Database configuration with environment variable defaults
-export const dbConfig = {
-  host: process.env.MYSQL_HOST || 'localhost',
-  port: parseInt(process.env.MYSQL_PORT || '3306', 10),
-  user: process.env.MYSQL_USER || 'root',
-  password: process.env.MYSQL_PASSWORD || 'rootpassword',
-  database: process.env.MYSQL_DATABASE || 'retailflow_db',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  enableKeepAlive: true,
-  keepAliveInitialDelay: 0,
-  multipleStatements: true,
-};
+export const dbConfig = mysqlUri
+  ? {
+      uri: mysqlUri,
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0,
+      multipleStatements: true,
+      ssl: { rejectUnauthorized: false }
+    }
+  : {
+      host: process.env.MYSQL_HOST || 'localhost',
+      port: parseInt(process.env.MYSQL_PORT || '3306', 10),
+      user: process.env.MYSQL_USER || 'root',
+      password: process.env.MYSQL_PASSWORD || '',
+      database: process.env.MYSQL_DATABASE || 'retailflow_db',
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0,
+      multipleStatements: true,
+      ssl: process.env.MYSQL_SSL === 'false' ? false : { rejectUnauthorized: false }
+    };
 
 let pool = null;
 
@@ -32,47 +42,14 @@ export const getPool = () => {
   return pool;
 };
 
-// Initialize database schema and seeds if needed
 export const initDB = async () => {
   try {
-    // 1. First ensure database exists (connect without database selected)
-    const adminConnection = await mysql.createConnection({
-      host: dbConfig.host,
-      port: dbConfig.port,
-      user: dbConfig.user,
-      password: dbConfig.password,
-      multipleStatements: true,
-    });
-
-    await adminConnection.query(`CREATE DATABASE IF NOT EXISTS \`${dbConfig.database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`);
-    await adminConnection.end();
-
-    // 2. Now run schema.sql if tables do not exist
     const p = getPool();
-    const [tables] = await p.query('SHOW TABLES;');
-    if (tables.length === 0) {
-      console.log('📦 Initializing MySQL schema for retailflow_db...');
-      const schemaPath = path.resolve(__dirname, '../../database/schema.sql');
-      const seedPath = path.resolve(__dirname, '../../database/seed.sql');
-
-      if (fs.existsSync(schemaPath)) {
-        const schemaSql = fs.readFileSync(schemaPath, 'utf8');
-        await p.query(schemaSql);
-        console.log('✅ MySQL schema created successfully.');
-      }
-
-      if (fs.existsSync(seedPath)) {
-        const seedSql = fs.readFileSync(seedPath, 'utf8');
-        await p.query(seedSql);
-        console.log('✅ MySQL initial seed data inserted.');
-      }
-    } else {
-      console.log(`✅ Connected to MySQL database "${dbConfig.database}" (${tables.length} tables found).`);
-    }
-
+    await p.query('SELECT 1 + 1 AS connected;');
+    console.log('✅ Connected to MySQL database successfully.');
     return p;
   } catch (err) {
-    console.error('❌ MySQL initialization error:', err.message);
+    console.error('❌ MySQL connection error:', err.message);
     throw err;
   }
 };
