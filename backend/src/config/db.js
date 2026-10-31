@@ -1,6 +1,8 @@
 import dns from 'dns';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 // Use reliable public DNS for resolving MongoDB Atlas SRV records
 try {
@@ -9,22 +11,40 @@ try {
   // fallback to system resolver if restricted
 }
 
+// Load env from current directory first, then fallback to backend/.env
 dotenv.config();
+try {
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+} catch (e) {}
 
 const mongoUri = process.env.MONGODB_URI;
-if (!mongoUri) {
-  console.error('❌ MONGODB_URI not set in .env');
-  process.exit(1);
-}
 
 mongoose.set('strictQuery', false);
 
-mongoose
-  .connect(mongoUri)
-  .then(() => console.log('✅ Connected to MongoDB'))
-  .catch((err) => {
+let cachedConnection = null;
+
+export const connectDB = async () => {
+  if (mongoose.connection.readyState >= 1) {
+    return mongoose.connection;
+  }
+  if (!mongoUri) {
+    console.error('❌ MONGODB_URI not set');
+    return null;
+  }
+  try {
+    cachedConnection = await mongoose.connect(mongoUri);
+    console.log('✅ Connected to MongoDB Atlas');
+    return cachedConnection;
+  } catch (err) {
     console.error('❌ MongoDB connection error:', err);
-    process.exit(1);
-  });
+    throw err;
+  }
+};
+
+// Immediate connect for standalone mode
+if (mongoUri) {
+  connectDB().catch(() => {});
+}
 
 export default mongoose;

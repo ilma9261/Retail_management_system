@@ -4,7 +4,7 @@
  * Base URL reads from Vite env var VITE_API_URL, falling back to localhost:5000.
  */
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 // ─── Token helpers ────────────────────────────────────────────────────────────
 const TOKEN_KEY = 'retailflow_jwt_token';

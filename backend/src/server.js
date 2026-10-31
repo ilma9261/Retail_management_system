@@ -22,18 +22,38 @@ app.use(express.json());
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
+app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
-// Routes
+// Routes mounted at both /api/* and /* for full portability across standalone and serverless environments
 app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes);
+
 app.use('/api/products', productRoutes);
+app.use('/products', productRoutes);
+
 app.use('/api/warehouses', warehouseRoutes);
+app.use('/warehouses', warehouseRoutes);
+
 app.use('/api/suppliers', supplierRoutes);
+app.use('/suppliers', supplierRoutes);
+
 app.use('/api/purchase-orders', purchaseOrderRoutes);
+app.use('/purchase-orders', purchaseOrderRoutes);
+
 app.use('/api/stock-transfers', stockTransferRoutes);
+app.use('/stock-transfers', stockTransferRoutes);
+
 app.use('/api/inventory', inventoryRoutes);
+app.use('/inventory', inventoryRoutes);
+
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/dashboard', dashboardRoutes);
 
 // Global error handler
 app.use(errorHandler);
 
-app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+}
+
+export default app;
