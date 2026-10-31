@@ -24,6 +24,29 @@ app.use(express.json());
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
+app.get('/api/debug-db', async (req, res) => {
+  try {
+    const { connectDB } = await import('./config/db.js');
+    await connectDB();
+    const mongoose = (await import('mongoose')).default;
+    res.json({
+      status: 'ok',
+      readyState: mongoose.connection.readyState,
+      uriDefined: !!process.env.MONGODB_URI,
+      host: mongoose.connection.host,
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: 'error',
+      uriDefined: !!process.env.MONGODB_URI,
+      name: err.name,
+      message: err.message,
+      code: err.code,
+      reason: err.reason ? String(err.reason) : null
+    });
+  }
+});
+
 // Routes mounted at both /api/* and /* for full portability across standalone and serverless environments
 app.use('/api/auth', authRoutes);
 app.use('/auth', authRoutes);
