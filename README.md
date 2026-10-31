@@ -1,8 +1,16 @@
 # RetailFlow — Enterprise Retail Inventory Management System
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel%20Production-success.svg?logo=vercel)](https://retail-inventory-system-ten.vercel.app)
 [![Node.js](https://img.shields.io/badge/Backend-Node.js%2020%20%7C%20Express-339933.svg?logo=node.js)](https://nodejs.org)
 [![MongoDB Atlas](https://img.shields.io/badge/Database-MongoDB%20Atlas%20%7C%20Mongoose-47A248.svg?logo=mongodb)](https://www.mongodb.com/atlas)
 [![React](https://img.shields.io/badge/Frontend-React%2018%20%7C%20Vite%206-61DAFB.svg?logo=react)](https://react.dev)
+
+**Live Production URL**: [https://retail-inventory-system-ten.vercel.app](https://retail-inventory-system-ten.vercel.app)
+
+**Demo Credentials**:
+- **Email**: `admin@retailflow.com`
+- **Password**: `Admin@123`
+- *(Or click the one-click "Auto-Fill Credentials" button on the login screen)*
 [![Tailwind CSS](https://img.shields.io/badge/Styles-Tailwind%203.4-38B2AC.svg?logo=tailwindcss)](https://tailwindcss.com)
 [![Docker](https://img.shields.io/badge/Containers-Docker%20%7C%20Compose-2496ED.svg?logo=docker)](https://www.docker.com)
 [![Jenkins](https://img.shields.io/badge/CI%2FCD-Jenkins%20Pipeline-D24939.svg?logo=jenkins)](https://www.jenkins.io)
