@@ -4,14 +4,13 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// Use reliable public DNS for resolving MongoDB Atlas SRV records
-try {
-  dns.setServers(['8.8.8.8', '1.1.1.1']);
-} catch (e) {
-  // fallback to system resolver if restricted
+// Only set custom DNS on local machines where local router blocks SRV (never in cloud serverless like Vercel)
+if (!process.env.VERCEL && process.platform === 'win32') {
+  try {
+    dns.setServers(['8.8.8.8', '1.1.1.1']);
+  } catch (e) {}
 }
 
-// Load env from current directory first, then fallback to backend/.env
 dotenv.config();
 try {
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -22,28 +21,33 @@ const mongoUri = process.env.MONGODB_URI;
 
 mongoose.set('strictQuery', false);
 
-let cachedConnection = null;
+let cachedPromise = null;
 
 export const connectDB = async () => {
-  if (mongoose.connection.readyState >= 1) {
+  if (mongoose.connection.readyState === 1) {
     return mongoose.connection;
   }
   if (!mongoUri) {
-    console.error('❌ MONGODB_URI not set');
-    return null;
+    console.error('❌ MONGODB_URI is not defined in environment variables');
+    throw new Error('MONGODB_URI is not defined in environment variables');
   }
-  try {
-    cachedConnection = await mongoose.connect(mongoUri);
-    console.log('✅ Connected to MongoDB Atlas');
-    return cachedConnection;
-  } catch (err) {
-    console.error('❌ MongoDB connection error:', err);
-    throw err;
+  if (!cachedPromise) {
+    cachedPromise = mongoose.connect(mongoUri, {
+      serverSelectionTimeoutMS: 8000,
+    }).then(conn => {
+      console.log('✅ Connected to MongoDB Atlas');
+      return conn;
+    }).catch(err => {
+      cachedPromise = null;
+      console.error('❌ MongoDB connection error:', err);
+      throw err;
+    });
   }
+  return cachedPromise;
 };
 
-// Immediate connect for standalone mode
-if (mongoUri) {
+// Immediate connect for standalone server
+if (mongoUri && !process.env.VERCEL) {
   connectDB().catch(() => {});
 }
 
